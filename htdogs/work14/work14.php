@@ -3,31 +3,22 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>TRY19</title>
+    <title>WORK14</title>
 </head>
 
 <body>
     <?php
-    $stack = array(rand(1, 100));
-    for ($i = 1; $i < 5; $i++) {
-        array_push($stack, rand(1, 100));
+    $stack = array();
+    for ($i = 0; $i < 5; $i++) {
+        $num = rand(1, 100);         // 乱数を生成
+        array_push($stack, $num);
+        if ($num % 2 == 0) {
+            print $num . "(偶数)<br>";
+        } else {
+            print $num . "(奇数)<br>";
+        }
     }
-
-    print_r(value: $stack);
-
-
     ?>
-
 </body>
 
 </html>
-
-$num = array();
-
-$num[0] = 10;
-$num[1] = 20;
-$num[2] = 30;
-$num[3] = 40;
-<?php
-
-?>
