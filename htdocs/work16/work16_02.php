@@ -15,7 +15,10 @@
         print '入力されていません';
     }
     if (isset($_GET["check_b"])) {
-        print '選んだ選択肢： ' . htmlspecialchars($_GET['name_text'], ENT_QUOTES, 'UTF-8');
+        echo '<br>選んだ選択肢：<br>';
+        foreach ($_GET["check_b"] as $choice) {
+            echo htmlspecialchars($choice, ENT_QUOTES, 'UTF-8') . '<br>';
+        }
     }
     ?>
 </body>

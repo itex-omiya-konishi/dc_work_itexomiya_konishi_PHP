@@ -8,7 +8,7 @@
 
 <body>
     <div>入力内容の取得</div>
-    <form>
+    <form method="get" action="get_receive.php">
         <input type="text" name="display_text">
         <input type="submit" value="送信">
     </form>
