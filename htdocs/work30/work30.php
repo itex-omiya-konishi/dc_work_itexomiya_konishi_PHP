@@ -20,14 +20,21 @@
     $db->close();        // 接続を閉じる
     ?>
     <form method="post" action="work30_gallery.php" enctype="multipart/form-data">
+        <p>
         <div>画像投稿</div>
-        <div>画像タイトルを入力してください。</div>
+        </p>
+        <div style="color: red;">画像タイトルを入力してください。</div>
         <p>画像タイトル：<input type="text" name="title"></p>
         <p>画像：<input type="file" name="upload_image"></p>
         <p><input type="submit" value="画像投稿"></p>
     </form>
-    <div>画像一覧ページ</div>
-    <div>投稿された画像</div>
+    <div></div>
+    <?php
+    echo "<p>画像一覧ページ。</p>";
+    echo "<hr>"; // ここでPHPから水平線（<hr>タグ）を出力します
+    echo "<p>投稿された画像</p>";
+    ?>
+    <div></div>
 </body>
 
 </html>
