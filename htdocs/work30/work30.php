@@ -30,7 +30,7 @@
     </form>
     <div></div>
     <?php
-    echo "<p>画像一覧ページ。</p>";
+    echo "<p><a href='work30_gallery.php'>画像一覧ページへ</a></p>";
     echo "<hr>"; // ここでPHPから水平線（<hr>タグ）を出力します
     echo "<p>投稿された画像</p>";
     ?>
