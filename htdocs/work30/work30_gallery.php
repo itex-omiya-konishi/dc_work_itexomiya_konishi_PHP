@@ -103,11 +103,16 @@
             echo '<p><a href="work30.php">戻る</a></p>';
             exit;
         }
-
         // 保存先
         $upload_dir = 'img/';
-        $filename = basename($_FILES['upload_image']['name']);
-        $save_path = $upload_dir . $filename;
+
+        // ファイルの拡張子を取得
+        $ext = pathinfo($_FILES['upload_image']['name'], PATHINFO_EXTENSION);
+
+        // ユニークなファイル名を生成（例: 20250917123000_ab12cd34ef.png）
+        $unique_name = date('YmdHis') . '_' . bin2hex(random_bytes(5)) . '.' . $ext;
+
+        $save_path = $upload_dir . $unique_name;
 
         // ファイルを保存
         if (move_uploaded_file($_FILES['upload_image']['tmp_name'], $save_path)) {
@@ -120,9 +125,9 @@
                 exit;
             }
 
-            // SQLで保存
+            // SQLで保存（ユニーク名で）
             $stmt = $db->prepare("INSERT INTO image_gallery (title, filename) VALUES (?, ?)");
-            $stmt->bind_param('ss', $title, $filename);
+            $stmt->bind_param('ss', $title, $unique_name);
             $stmt->execute();
             $stmt->close();
             $db->close();
