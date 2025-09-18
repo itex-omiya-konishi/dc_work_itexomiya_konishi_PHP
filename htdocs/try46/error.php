@@ -14,22 +14,22 @@ $password = '2qtajdv62h';
 <body>
     <?php
     try {
-        // データベースへ接続
         $db = new PDO($dsn, $login_user, $password);
-        //PDOのエラー時にPDOExceptionが発生するように設定
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        $db->beginTransaction();    // トランザクション開始
+        $db->beginTransaction();
 
-        //UPDATE文の実行
-        $sql = "UPDATE product SET price = 160 WHERE product_id = 1";
+        // わざと存在しないカラム名でエラーを発生
+        $sql = "UPDATE product SET invalid_column = 160 WHERE product_id = 1";
         $result = $db->query($sql);
+
         $row = $result->rowCount();
         echo $row . '件更新しました。';
-        $db->commit();        // 正常に終了したらコミット
+
+        $db->commit();
     } catch (PDOException $e) {
-        echo $e->getMessage();
-        $db->rollBack();          // エラーが起きたらロールバック
+        echo "エラー発生: " . $e->getMessage();
+        $db->rollBack();
     }
     ?>
 </body>
