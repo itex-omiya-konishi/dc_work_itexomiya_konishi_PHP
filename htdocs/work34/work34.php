@@ -8,7 +8,7 @@ $password = '2qtajdv62h';
 
 <head>
     <meta charset="UTF-8">
-    <title>WORK33</title>
+    <title>TRY48</title>
 </head>
 
 <body>
@@ -22,14 +22,14 @@ $password = '2qtajdv62h';
         $db->beginTransaction();    // トランザクション開始
 
         //クエリを生成する
-        $sql = "UPDATE product SET price = :price WHERE product_id = :id";
+        $sql = "UPDATE product SET price = ? WHERE product_id = ?";
 
         //prepareメソッドによるクエリの実行準備をする
         $stmt = $db->prepare($sql);
 
         //値をバインドする
-        $stmt->bindValue(':price', 140);
-        $stmt->bindValue(':id', 1);
+        $stmt->bindValue(1, 170);
+        $stmt->bindValue(2, '1');
 
         //クエリのの実行
         $stmt->execute();
@@ -58,11 +58,12 @@ $password = '2qtajdv62h';
             echo "<p>該当する商品が見つかりませんでした。</p>";
         }
 
-
         $db->commit();        // 正常に終了したらコミット
     } catch (PDOException $e) {
         echo $e->getMessage();
-        $db->rollBack();          // エラーが起きたらロールバック
+        if (isset($db)) {
+            $db->rollBack();
+        }      // エラーが起きたらロールバック
     }
     ?>
 </body>
