@@ -1,6 +1,5 @@
 <?php
-
-// データベース接続
+// DB接続
 function connectDB()
 {
     $dsn = 'mysql:host=localhost;dbname=xb513874_gnjy0;charset=utf8mb4';
@@ -17,41 +16,21 @@ function connectDB()
     }
 }
 
-// 画像一覧を取得
-function getAllImages(PDO $pdo)
-{
-    $stmt = $pdo->query("SELECT * FROM image_gallery ORDER BY created_at DESC");
-    return $stmt->fetchAll();
-}
-
-// 公開・非公開の切り替え
-function toggleImageVisibility(PDO $pdo, int $image_id)
-{
-    $stmt = $pdo->prepare("SELECT is_public FROM image_gallery WHERE id = ?");
-    $stmt->execute([$image_id]);
-    if ($row = $stmt->fetch()) {
-        $new_status = $row['is_public'] ? 0 : 1;
-        $update = $pdo->prepare("UPDATE image_gallery SET is_public = ? WHERE id = ?");
-        $update->execute([$new_status, $image_id]);
-    }
-}
-
-// 投稿のバリデーション
-function validateUpload(array $post, array $files): array
+// バリデーション
+function validateUpload(array $post, array $file): array
 {
     $errors = [];
+    $title = trim($post['title'] ?? '');
 
-    // タイトル
-    if (empty($post['title'])) {
+    if (empty($title)) {
         $errors[] = 'タイトルが入力されていません。';
     }
 
-    // 画像
-    if (!isset($files['upload_image']) || $files['upload_image']['error'] !== UPLOAD_ERR_OK) {
+    if (!isset($file['upload_image']) || $file['upload_image']['error'] !== UPLOAD_ERR_OK) {
         $errors[] = '画像が選択されていません。';
     } else {
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mime_type = finfo_file($finfo, $files['upload_image']['tmp_name']);
+        $mime_type = finfo_file($finfo, $file['upload_image']['tmp_name']);
         finfo_close($finfo);
         $allowed = ['image/jpeg', 'image/png'];
         if (!in_array($mime_type, $allowed)) {
@@ -62,15 +41,44 @@ function validateUpload(array $post, array $files): array
     return $errors;
 }
 
-// 投稿をDBへ保存
-function saveImageToDB(PDO $pdo, string $title, string $filename): bool
+// 画像保存処理
+function saveImage(PDO $pdo, string $title, array $file): bool
 {
-    $stmt = $pdo->prepare("INSERT INTO image_gallery (title, filename) VALUES (?, ?)");
-    return $stmt->execute([$title, $filename]);
+    $upload_dir = 'img/';
+    $ext = pathinfo($file['upload_image']['name'], PATHINFO_EXTENSION);
+    $unique_name = date('YmdHis') . '_' . bin2hex(random_bytes(5)) . '.' . $ext;
+    $save_path = $upload_dir . $unique_name;
+
+    if (move_uploaded_file($file['upload_image']['tmp_name'], $save_path)) {
+        $stmt = $pdo->prepare("INSERT INTO image_gallery2 (title, filename) VALUES (?, ?)");
+        return $stmt->execute([$title, $unique_name]);
+    }
+
+    return false;
+}
+
+// 画像一覧取得
+function getAllImages(PDO $pdo): array
+{
+    $stmt = $pdo->query("SELECT * FROM image_gallery2 ORDER BY created_at DESC");
+    return $stmt->fetchAll();
+}
+
+// フラグ切り替え
+function toggleVisibility(PDO $pdo, int $id): void
+{
+    $stmt = $pdo->prepare("SELECT is_public FROM image_gallery2 WHERE id = ?");
+    $stmt->execute([$id]);
+
+    if ($row = $stmt->fetch()) {
+        $new_status = $row['is_public'] ? 0 : 1;
+        $update = $pdo->prepare("UPDATE image_gallery2 SET is_public = ? WHERE id = ?");
+        $update->execute([$new_status, $id]);
+    }
 }
 
 // メッセージ表示
-function displayMessages(array $messages, string $color = 'red')
+function displayMessages(array $messages, string $color = 'red'): void
 {
     foreach ($messages as $msg) {
         echo "<p style='color:{$color};'>{$msg}</p>";

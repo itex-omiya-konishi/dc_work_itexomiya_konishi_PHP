@@ -9,8 +9,6 @@
 <body>
     <?php
     require_once 'functions.php';
-
-    // DB接続確認メッセージ
     $pdo = connectDB();
     echo "データベースへの接続に成功しました。";
     ?>
@@ -25,11 +23,7 @@
         <p><input type="submit" value="画像投稿"></p>
     </form>
 
-    <?php
-    echo "<p><a href='work36_gallery.php'>画像一覧ページへ</a></p>";
-    echo "<hr>";
-    echo "<p>投稿された画像</p>";
-    ?>
+    <p><a href="work36_gallery.php">画像一覧ページへ</a></p>
 </body>
 
 </html>
