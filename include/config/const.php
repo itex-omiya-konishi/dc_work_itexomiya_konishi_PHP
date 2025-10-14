@@ -1,9 +1,9 @@
 <?php
 // データベース接続情報など
 define('DB_HOST', 'localhost');
-define('DB_USER', 'user_name');
-define('DB_PASS', 'password');
-define('DB_NAME', 'ec_site_db');
+define('DB_USER', 'xb513874_18q1d');
+define('DB_PASS', '2qtajdv62h');
+define('DB_NAME', 'xb513874_gnjy0');
 
 // 文字コード
 define('HTML_CHARACTER_SET', 'UTF-8');
