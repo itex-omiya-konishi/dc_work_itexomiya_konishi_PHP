@@ -1,5 +1,6 @@
 <?php
-require_once 'EC_SITE_model.php';
+require_once '../../include/model/ec_site_model.php';
+include_once '../../include/view/ec_site_view.php';
 ?>
 <!DOCTYPE html>
 <html>
@@ -36,7 +37,7 @@ require_once 'EC_SITE_model.php';
     $cookie_confirmation = isset($_COOKIE['cookie_confirmation']) ? 'checked' : '';
     $user_id = isset($_COOKIE['user_id']) ? $_COOKIE['user_id'] : '';
     ?>
-    <form action="work37.home.php" method="post">
+    <form action="login.php" method="post">
         <label for="user_id">ユーザー名</label>
         <input type="text" id="user_id" name="user_id" value="<?php echo htmlspecialchars($user_id); ?>"><br>
 
