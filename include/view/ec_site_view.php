@@ -1,19 +1,23 @@
-<?php
-function display_login_form($user_id = '', $cookie_checked = '')
-{
-?>
-    <form action="login.php" method="post">
-        <label for="user_id">ユーザー名</label>
-        <input type="text" id="user_id" name="user_id" value="<?php echo h($user_id); ?>"><br>
+function display_register_form($message = '') {
+echo '
+<!DOCTYPE html>
+<html lang="ja">
 
-        <label for="password">パスワード</label>
-        <input type="password" id="password" name="password"><br>
+<head>
+    <meta charset="UTF-8">
+    <title>ユーザー登録</title>
+</head>
 
-        <input type="checkbox" name="cookie_confirmation" value="checked" <?php echo $cookie_checked; ?>>次回からユーザーIDの入力を省略する<br>
-
-        <input class="login" type="submit" value="ログイン">
-        <div><a href="register.php">新規登録ページへ</a></div>
+<body>
+    <h2>ユーザー登録</h2>
+    <p style="color:red;">' . htmlspecialchars($message) . '</p>
+    <form action="register.php" method="post">
+        <label>ユーザーID：<input type="text" name="user_id"></label><br>
+        <label>ユーザー名：<input type="text" name="username"></label><br>
+        <label>パスワード：<input type="password" name="password"></label><br>
+        <input type="submit" value="登録">
     </form>
-<?php
+</body>
+
+</html>';
 }
-?>

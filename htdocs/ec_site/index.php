@@ -26,6 +26,15 @@ include_once '../../include/view/ec_site_view.php';
             background-color: blue;
             color: white;
         }
+
+        a {
+            color: blue;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -37,7 +46,7 @@ include_once '../../include/view/ec_site_view.php';
     $cookie_confirmation = isset($_COOKIE['cookie_confirmation']) ? 'checked' : '';
     $user_id = isset($_COOKIE['user_id']) ? $_COOKIE['user_id'] : '';
     ?>
-    <form action="login.php" method="post">
+    <form action="register.php" method="post">
         <label for="user_id">ユーザー名</label>
         <input type="text" id="user_id" name="user_id" value="<?php echo htmlspecialchars($user_id); ?>"><br>
 
@@ -47,7 +56,9 @@ include_once '../../include/view/ec_site_view.php';
         <input type="checkbox" name="cookie_confirmation" value="checked" <?php echo $cookie_confirmation; ?>>次回からユーザーIDの入力を省略する<br>
 
         <input class="login" type="submit" value="登録">
-        <div>新規登録ページへ</div>
+        <div>
+            <a href="register.php">新規登録ページへ</a>
+        </div>
     </form>
 </body>
 
