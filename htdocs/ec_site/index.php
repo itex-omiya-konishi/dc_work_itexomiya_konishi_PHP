@@ -1,65 +1,41 @@
 <?php
-require_once '../../include/model/ec_site_model.php';
-include_once '../../include/view/ec_site_view.php';
-?>
-<!DOCTYPE html>
-<html>
+session_start();
 
-<head>
-    <meta charset="utf-8">
-    <title>EC SITE</title>
-    <style>
-        .name {
-            background-color: aqua;
-        }
+require_once __DIR__ . '/../../include/config/const.php';
+require_once __DIR__ . '/../../include/functions/common.php';
+require_once __DIR__ . '/../../include/model/user_model.php';
+require_once __DIR__ . '/../../include/view/user_view.php';
 
-        .title {
-            text-align: center;
-        }
+// DB接続
+$dbh = db_connect();
 
-        form {
-            text-align: center;
-        }
+$message = '';
+$message_type = ''; // success / error
 
-        .login {
-            text-align: center;
-            background-color: blue;
-            color: white;
-        }
+// 登録完了メッセージ
+if (isset($_GET['register']) && $_GET['register'] === 'success') {
+    $message = 'ユーザー登録が完了しました。ログインしてください。';
+    $message_type = 'success';
+}
 
-        a {
-            color: blue;
-            text-decoration: none;
-        }
+// フォーム送信時
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user_id = trim($_POST['user_id'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
+    if ($user_id === '' || $password === '') {
+        $message = 'ユーザーIDとパスワードを入力してください。';
+        $message_type = 'error';
+    } elseif (check_user($dbh, $user_id, $password)) {
+        // ログイン成功
+        $_SESSION['user_id'] = $user_id;
+        header('Location: product_list.php'); // 商品一覧ページへ遷移
+        exit;
+    } else {
+        $message = 'ユーザーIDまたはパスワードが違います。';
+        $message_type = 'error';
+    }
+}
 
-<body>
-    <div class="name">EC SITE</div>
-    <div class="title">ログイン</div>
-    <?php
-    // Cookie読み込み
-    $cookie_confirmation = isset($_COOKIE['cookie_confirmation']) ? 'checked' : '';
-    $user_id = isset($_COOKIE['user_id']) ? $_COOKIE['user_id'] : '';
-    ?>
-    <form action="register.php" method="post">
-        <label for="user_id">ユーザー名</label>
-        <input type="text" id="user_id" name="user_id" value="<?php echo htmlspecialchars($user_id); ?>"><br>
-
-        <label for="password">パスワード</label>
-        <input type="password" id="password" name="password"><br>
-
-        <input type="checkbox" name="cookie_confirmation" value="checked" <?php echo $cookie_confirmation; ?>>次回からユーザーIDの入力を省略する<br>
-
-        <input class="login" type="submit" value="登録">
-        <div>
-            <a href="register.php">新規登録ページへ</a>
-        </div>
-    </form>
-</body>
-
-</html>
+// ビュー表示
+display_login_form($message, $message_type);
