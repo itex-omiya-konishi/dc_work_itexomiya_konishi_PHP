@@ -26,10 +26,13 @@ define('HTML_CHARACTER_SET', 'UTF-8');
 // ==============================
 // ディレクトリ・ファイル設定
 // ==============================
+
 // 商品画像の保存先（サーバー内絶対パス）
+// __DIR__ は「include/config/」なので、htdocs/ec_site/images/ まで2階層戻る
 define('IMAGE_DIR', __DIR__ . '/../../htdocs/ec_site/images/');
 
-// 商品画像の表示用（HTMLで利用する相対パス）
+// 商品画像の表示用（HTMLから見た相対パス）
+// product_manage.php（htdocs/ec_site/）から見て ./images/ に画像がある
 define('IMAGE_PATH', './images/');
 
 // ==============================

@@ -4,25 +4,48 @@
  * 商品管理ページ（管理者用）
  * - 商品の追加、在庫数変更、公開ステータス変更、削除
  * - バリデーション、メッセージ表示付き
+ * - ログイン制御・ログアウト機能付き
  */
+
+
+session_start();
 
 require_once '../../include/config/const.php';
 require_once '../../include/model/product_model.php';
-require_once '../../include/view/product_view.php';
+require_once '../../include/view/product_manage_view.php';
 
+// ==============================
+// ログアウト処理
+// ==============================
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+// ==============================
+// ログインチェック
+// ==============================
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+// ログインしていない場合はログインページへリダイレクト
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../login/login.php'); // ログインページのパスに変更
+    exit;
+}
 // データベース接続
 $dbh = db_connect();
-
 $err_msgs = [];
 $success_msgs = [];
-
 // --------------------------------------
 // POST処理（追加／更新／削除）
 // --------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $process_kind = $_POST['process_kind'] ?? '';
-
+    // ------------------------------
     // 商品追加処理
+    // ------------------------------
     if ($process_kind === 'insert') {
         $product_name = trim($_POST['product_name'] ?? '');
         $price = $_POST['price'] ?? '';
@@ -56,20 +79,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // エラーがなければ登録処理
         if (empty($err_msgs)) {
             $image_name = basename($image['name']);
+            $image_name = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $image_name); // ファイル名サニタイズ
             $upload_path = IMAGE_DIR . $image_name;
 
             if (move_uploaded_file($image['tmp_name'], $upload_path)) {
-                try {
-                    $dbh->beginTransaction();
-
-                    $product_id = insert_product($dbh, $product_name, $price, $public_flg);
-                    insert_stock($dbh, $product_id, $stock_qty);
-                    insert_image($dbh, $product_id, $image_name);
-
-                    $dbh->commit();
+                // トランザクション処理（モデル側で実施）
+                if (register_product_transaction($dbh, $product_name, $price, $public_flg, $stock_qty, $image_name)) {
                     $success_msgs[] = '商品を追加しました。';
-                } catch (PDOException $e) {
-                    $dbh->rollBack();
+                } else {
                     $err_msgs[] = '商品追加に失敗しました。';
                 }
             } else {
@@ -78,7 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // ------------------------------
     // 在庫数更新処理
+    // ------------------------------
     if ($process_kind === 'update_stock') {
         $product_id = $_POST['product_id'] ?? '';
         $stock_qty = $_POST['stock_qty'] ?? '';
@@ -94,7 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // ------------------------------
     // 公開ステータス変更処理
+    // ------------------------------
     if ($process_kind === 'update_status') {
         $product_id = $_POST['product_id'] ?? '';
         $public_flg = $_POST['public_flg'] ?? '';
@@ -107,17 +128,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // ------------------------------
     // 商品削除処理
+    // ------------------------------
     if ($process_kind === 'delete') {
         $product_id = $_POST['product_id'] ?? '';
 
         try {
             $dbh->beginTransaction();
-
             delete_image($dbh, $product_id);
             delete_stock($dbh, $product_id);
             delete_product($dbh, $product_id);
-
             $dbh->commit();
             $success_msgs[] = '商品を削除しました。';
         } catch (PDOException $e) {
@@ -130,9 +151,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // --------------------------------------
 // 商品一覧取得
 // --------------------------------------
-$products = get_product_list($dbh);
+$products = get_all_products($dbh);
 
 // --------------------------------------
-// ビューの読み込み
+// ビュー表示
 // --------------------------------------
-display_product_manage_page($products, $err_msgs, $success_msgs);
+$user_name = $_SESSION['user_name'] ?? '';
+display_product_manage_page($products, $err_msgs, $success_msgs, $user_name);
