@@ -7,42 +7,40 @@
  * - ログイン制御・ログアウト機能付き
  */
 
-
-session_start();
-
 require_once '../../include/config/const.php';
+require_once '../../include/functions/common.php'; // ← 追加
 require_once '../../include/model/product_model.php';
 require_once '../../include/view/product_manage_view.php';
+
+ensure_session_started(); // ← 念のため明示的に
 
 // ==============================
 // ログアウト処理
 // ==============================
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     session_destroy();
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
+
 // ==============================
-// ログインチェック
+// ログインチェック（共通関数使用）
 // ==============================
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
-// ログインしていない場合はログインページへリダイレクト
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../login/login.php'); // ログインページのパスに変更
-    exit;
-}
+check_login();
+
+// ==============================
 // データベース接続
+// ==============================
 $dbh = db_connect();
 $err_msgs = [];
 $success_msgs = [];
+
 // --------------------------------------
 // POST処理（追加／更新／削除）
 // --------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $process_kind = $_POST['process_kind'] ?? '';
+
     // ------------------------------
     // 商品追加処理
     // ------------------------------

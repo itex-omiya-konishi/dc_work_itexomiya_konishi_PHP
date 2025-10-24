@@ -16,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = trim($_POST['user_id'] ?? '');
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-
     // バリデーション
     if ($user_id === '' || $password === '') {
         $message = 'ユーザーIDとパスワードを入力してください。';
@@ -42,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 // ビュー呼び出し（登録失敗時のみ表示）
 if ($message !== '') {
     display_register_form($message, $message_type);

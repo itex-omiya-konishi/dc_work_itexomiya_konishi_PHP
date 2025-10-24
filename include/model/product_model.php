@@ -8,20 +8,50 @@
 require_once dirname(__FILE__) . '/../config/const.php';
 
 /**
- * DB接続
- * @return PDO
+ * 商品関連モデル
  */
-function db_connect()
+
+// 公開商品を取得（在庫・画像JOIN込み）
+function get_public_products($dbh)
 {
-    try {
-        $dbh = new PDO(DSN, DB_USER, DB_PASS);
-        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-        $dbh->exec('SET NAMES utf8mb4');
-        return $dbh;
-    } catch (PDOException $e) {
-        die('データベース接続エラー：' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
-    }
+    $sql = "
+        SELECT 
+            p.product_id,
+            p.product_name,
+            p.price,
+            p.public_flg,
+            i.image_name,
+            COALESCE(s.stock_qty, 0) AS stock_qty
+        FROM products AS p
+        LEFT JOIN images AS i ON p.product_id = i.product_id
+        LEFT JOIN stocks AS s ON p.product_id = s.product_id
+        WHERE p.public_flg = 1
+        ORDER BY p.create_date DESC
+    ";
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * 全商品取得（管理者用）
+ */
+function get_all_products($dbh)
+{
+    $sql = 'SELECT 
+                p.product_id,
+                p.product_name,
+                p.price,
+                p.public_flg,
+                COALESCE(s.stock_qty, 0) AS stock_qty,
+                i.image_name
+            FROM products AS p
+            LEFT JOIN stocks AS s ON p.product_id = s.product_id
+            LEFT JOIN images AS i ON p.product_id = i.product_id
+            ORDER BY p.create_date DESC';
+    $stmt = $dbh->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**
@@ -56,48 +86,6 @@ function insert_image($dbh, $product_id, $image_name)
             VALUES (?, ?, NOW(), NOW())';
     $stmt = $dbh->prepare($sql);
     $stmt->execute([$product_id, $image_name]);
-}
-
-/**
- * 全商品取得（管理者用）
- */
-function get_all_products($dbh)
-{
-    $sql = 'SELECT 
-                p.product_id,
-                p.product_name,
-                p.price,
-                p.public_flg,
-                COALESCE(s.stock_qty, 0) AS stock_qty,
-                i.image_name
-            FROM products AS p
-            LEFT JOIN stocks AS s ON p.product_id = s.product_id
-            LEFT JOIN images AS i ON p.product_id = i.product_id
-            ORDER BY p.create_date DESC';
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-/**
- * 公開中の商品取得（一般ユーザー用）
- */
-function get_public_products($dbh)
-{
-    $sql = 'SELECT 
-                p.product_id,
-                p.product_name,
-                p.price,
-                COALESCE(s.stock_qty, 0) AS stock_qty,
-                i.image_name
-            FROM products AS p
-            LEFT JOIN stocks AS s ON p.product_id = s.product_id
-            LEFT JOIN images AS i ON p.product_id = i.product_id
-            WHERE p.public_flg = 1
-            ORDER BY p.create_date DESC';
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 /**
@@ -186,12 +174,4 @@ function register_product_transaction($dbh, $name, $price, $public_flg, $stock_q
         error_log('商品登録エラー: ' . $e->getMessage());
         return false;
     }
-}
-
-/**
- * XSS対策（HTMLエスケープ）
- */
-function h($str)
-{
-    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
