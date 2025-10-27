@@ -1,5 +1,5 @@
 <?php
-function display_product_list($products, $user_name, $message = '', $message_type = '')
+function display_product_list($products, $message = '', $message_type = '', $user_name = '')
 {
 ?>
     <!DOCTYPE html>
@@ -8,6 +8,7 @@ function display_product_list($products, $user_name, $message = '', $message_typ
     <head>
         <meta charset="UTF-8">
         <title>商品一覧</title>
+        <link rel="stylesheet" href="../../css/style.css">
         <style>
             ul {
                 list-style: none;
@@ -36,36 +37,38 @@ function display_product_list($products, $user_name, $message = '', $message_typ
     </head>
 
     <body>
-        <div>
-            <?= htmlspecialchars($user_name) ?> さん
-            <a href="logout.php">ログアウト</a>
-            <a href="cart.php">カートを見る</a>
-        </div>
+        <header>
+            <div class="logout">
+                <?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8'); ?> さん ようこそ<p>
+            </div>
+            <h1>商品一覧</h1>
+            <nav>
+                <a href="cart.php">🛒 カートを見る</a>
+            </nav>
+        </header>
 
         <?php if ($message !== ''): ?>
-            <div class="<?= htmlspecialchars($message_type) ?>">
-                <?= htmlspecialchars($message) ?>
-            </div>
+            <p class="<?= $message_type ?>"><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></p>
         <?php endif; ?>
 
-        <h1>商品一覧</h1>
-        <ul>
+        <div class="product-list">
             <?php foreach ($products as $product): ?>
-                <li>
-                    <img src="../images/<?= htmlspecialchars($product['image_name']) ?>" alt="<?= htmlspecialchars($product['product_name']) ?>">
-                    <p>商品名: <?= htmlspecialchars($product['product_name']) ?></p>
-                    <p>価格: <?= htmlspecialchars($product['price']) ?> 円</p>
-                    <?php if ($product['stock_qty'] > 0): ?>
+                <div class="product-item">
+                    <img src="../../images/<?= htmlspecialchars($product['image_name'] ?? 'no_image.png', ENT_QUOTES, 'UTF-8'); ?>" alt="<?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?>" width="150">
+                    <h2><?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?></h2>
+                    <p>価格: <?= number_format($product['price']); ?>円</p>
+                    <?php if ((int)$product['stock_qty'] > 0): ?>
                         <form method="post">
-                            <input type="hidden" name="product_id" value="<?= $product['product_id'] ?>">
+                            <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
                             <button type="submit">カートに入れる</button>
                         </form>
                     <?php else: ?>
-                        <p>売り切れ</p>
+                        <p class="soldout">売り切れ</p>
                     <?php endif; ?>
-                </li>
+                </div>
             <?php endforeach; ?>
-        </ul>
+        </div>
+        <a href="logout.php">ログアウト</a>
     </body>
 
     </html>
