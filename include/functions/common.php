@@ -49,13 +49,3 @@ function check_login()
         exit;
     }
 }
-/**
- * ログインユーザー名を取得する
- * 
- * @return string|null ログイン中のユーザー名（未ログインならnull）
- */
-function get_login_user()
-{
-    ensure_session_started();
-    return $_SESSION['user_name'] ?? null;
-}

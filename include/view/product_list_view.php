@@ -39,7 +39,8 @@ function display_product_list($products, $message = '', $message_type = '', $use
     <body>
         <header>
             <div class="logout">
-                <?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8'); ?> さん ようこそ<p>
+                <?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8'); ?> さん ようこそ
+                <a href="logout.php">ログアウト</a>
             </div>
             <h1>商品一覧</h1>
             <nav>
@@ -53,8 +54,14 @@ function display_product_list($products, $message = '', $message_type = '', $use
 
         <div class="product-list">
             <?php foreach ($products as $product): ?>
+                <?php
+                // --- ここを修正 ---
+                $image_name = $product['image_name'] ?? '';
+                $image_path = './images/' . ($image_name !== '' ? $image_name : 'no_image.png');
+                ?>
                 <div class="product-item">
-                    <img src="../../images/<?= htmlspecialchars($product['image_name'] ?? 'no_image.png', ENT_QUOTES, 'UTF-8'); ?>" alt="<?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?>" width="150">
+                    <img src="<?= htmlspecialchars($image_path, ENT_QUOTES, 'UTF-8'); ?>"
+                        alt="<?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?>" width="150">
                     <h2><?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?></h2>
                     <p>価格: <?= number_format($product['price']); ?>円</p>
                     <?php if ((int)$product['stock_qty'] > 0): ?>
@@ -68,9 +75,9 @@ function display_product_list($products, $message = '', $message_type = '', $use
                 </div>
             <?php endforeach; ?>
         </div>
-        <a href="logout.php">ログアウト</a>
     </body>
 
     </html>
 <?php
 }
+?>

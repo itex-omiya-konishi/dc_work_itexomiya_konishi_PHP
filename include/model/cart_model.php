@@ -39,11 +39,9 @@ function add_to_cart($dbh, $user_id, $product_id)
         return false;
     }
 }
-
 /**
  * カート関連モデル
  */
-
 // カート内に同一商品があるか確認
 function get_cart_item($dbh, $user_id, $product_id)
 {
@@ -59,7 +57,6 @@ function get_cart_item($dbh, $user_id, $product_id)
     $stmt->execute();
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
-
 // カート新規追加
 function insert_cart_item($dbh, $user_id, $product_id, $qty)
 {
@@ -73,7 +70,6 @@ function insert_cart_item($dbh, $user_id, $product_id, $qty)
     $stmt->bindValue(':product_qty', $qty, PDO::PARAM_INT);
     $stmt->execute();
 }
-
 // カート数量更新
 function update_cart_qty($dbh, $cart_id, $new_qty)
 {

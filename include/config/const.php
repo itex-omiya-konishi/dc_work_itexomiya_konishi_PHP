@@ -34,12 +34,13 @@ define('IMAGE_DIR', __DIR__ . '/../../htdocs/ec_site/images/');
 // 商品画像の表示用（HTMLから見た相対パス）
 // product_manage.php（htdocs/ec_site/）から見て ./images/ に画像がある
 define('IMAGE_PATH', './images/');
-
+define('NO_IMAGE', 'no_image.png');
 // ==============================
 // 画像アップロード設定
 // ==============================
 define('MAX_FILE_SIZE', 1048576); // 1MB
 define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png']); // 許可するMIMEタイプ
+
 
 // ==============================
 // タイムゾーン設定
