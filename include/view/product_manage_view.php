@@ -1,16 +1,11 @@
 <?php
 
 /**
- * 商品管理ページ（管理者用）ビュー
- * - 商品追加フォーム
- * - 在庫数変更
- * - 公開ステータス変更
- * - 商品削除
- * - エラー／成功メッセージ表示
- * - ログアウトリンク表示
+ * product_manage_view.php
+ * 商品管理ページのビュー（画像変更・削除対応）
  */
 
-function display_product_manage_page($products, $err_msgs = [], $success_msgs = [], $user_name = '')
+function display_product_manage($products, $message = '', $message_type = '', $user_name = '')
 {
 ?>
     <!DOCTYPE html>
@@ -19,12 +14,11 @@ function display_product_manage_page($products, $err_msgs = [], $success_msgs = 
     <head>
         <meta charset="UTF-8">
         <title>商品管理ページ</title>
-        <link rel="stylesheet" href="../../css/common.css">
+        <link rel="stylesheet" href="../../css/style.css">
         <style>
             body {
                 font-family: "Meiryo", sans-serif;
-                background-color: #f8f8f8;
-                margin: 0;
+                background-color: #f9f9f9;
                 padding: 20px;
             }
 
@@ -32,245 +26,205 @@ function display_product_manage_page($products, $err_msgs = [], $success_msgs = 
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 20px;
             }
 
-            h1 {
-                background-color: #333;
-                color: #fff;
-                padding: 12px 20px;
-                border-radius: 8px;
-                margin: 0;
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+                background: #fff;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
             }
 
-            .logout {
-                font-size: 14px;
+            th,
+            td {
+                padding: 10px;
+                border-bottom: 1px solid #ddd;
+                text-align: center;
             }
 
-            .logout a {
-                color: #fff;
-                background-color: #d00;
-                padding: 6px 12px;
-                border-radius: 4px;
-                text-decoration: none;
+            th {
+                background: #f0f0f0;
             }
 
-            .logout a:hover {
-                background-color: #900;
+            img {
+                max-width: 100px;
+                border-radius: 5px;
             }
 
-            .message-box {
-                margin: 15px 0;
-                padding: 10px 15px;
-                border-radius: 6px;
-            }
-
-            .error {
-                background-color: #ffe4e4;
-                color: #d00;
+            form {
+                display: inline-block;
+                margin: 0 3px;
             }
 
             .success {
-                background-color: #e8ffe8;
-                color: #060;
+                color: green;
+                font-weight: bold;
             }
 
-            .form-section {
-                background-color: #fff;
-                padding: 20px;
-                border-radius: 12px;
-                margin-bottom: 30px;
-                box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+            .error {
+                color: red;
+                font-weight: bold;
             }
 
-            .form-section h2 {
-                border-bottom: 2px solid #555;
-                padding-bottom: 5px;
-                margin-bottom: 15px;
-            }
-
-            .form-item {
+            .logout {
                 margin-bottom: 10px;
+            }
+
+            .add-form {
+                background: #fff;
+                padding: 15px;
+                margin-top: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
             }
 
             input[type="text"],
             input[type="number"],
             select {
-                padding: 6px;
-                border-radius: 4px;
-                border: 1px solid #ccc;
-                width: 250px;
+                padding: 5px;
+                width: 150px;
             }
 
             input[type="file"] {
-                margin-top: 4px;
+                width: 180px;
             }
 
-            input[type="submit"],
             button {
-                background-color: #0066cc;
-                color: white;
-                padding: 8px 14px;
+                padding: 5px 10px;
                 border: none;
-                border-radius: 6px;
+                background: #4CAF50;
+                color: white;
+                border-radius: 5px;
                 cursor: pointer;
             }
 
-            input[type="submit"]:hover,
             button:hover {
-                background-color: #004a99;
+                opacity: 0.8;
             }
 
-            table {
-                border-collapse: collapse;
-                width: 100%;
-                background-color: #fff;
-                box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+            .delete-btn {
+                background: #f44336;
             }
 
-            th,
-            td {
-                border: 1px solid #ccc;
-                padding: 10px;
-                text-align: center;
+            .image-change-btn {
+                background: #2196F3;
             }
 
-            th {
-                background-color: #f2f2f2;
-            }
-
-            img {
-                max-width: 100px;
-                height: auto;
-            }
-
-            .actions form {
-                display: inline;
+            .image-delete-btn {
+                background: #FF9800;
             }
         </style>
     </head>
 
     <body>
-
         <header>
-            <h1>商品管理ページ</h1>
-
             <div class="logout">
-                <?php if ($user_name): ?>
-                    <?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8') ?> さん
-                    <a href="?action=logout">ログアウト</a>
-                <?php endif; ?>
+                <?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8'); ?> さん　ようこそ |
+                <a href="logout.php">ログアウト</a>
             </div>
+            <h1>商品管理ページ</h1>
+            <nav>
+                <a href="product_list.php">🛒 商品一覧へ</a>
+            </nav>
         </header>
 
-        <?php if (!empty($err_msgs)): ?>
-            <div class="message-box error">
-                <?php foreach ($err_msgs as $msg): ?>
-                    <p>⚠ <?= htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') ?></p>
-                <?php endforeach; ?>
-            </div>
+        <?php if ($message !== ''): ?>
+            <p class="<?= $message_type ?>">
+                <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?>
+            </p>
         <?php endif; ?>
-
-        <?php if (!empty($success_msgs)): ?>
-            <div class="message-box success">
-                <?php foreach ($success_msgs as $msg): ?>
-                    <p>✅ <?= htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') ?></p>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-
-        <!-- 商品追加フォーム -->
-        <div class="form-section">
-            <h2>新規商品追加</h2>
-            <form method="post" enctype="multipart/form-data">
-                <input type="hidden" name="process_kind" value="insert">
-
-                <div class="form-item">
-                    <label>商品名：</label><br>
-                    <input type="text" name="product_name" required>
-                </div>
-
-                <div class="form-item">
-                    <label>価格：</label><br>
-                    <input type="number" name="price" min="0" required>
-                </div>
-
-                <div class="form-item">
-                    <label>在庫数：</label><br>
-                    <input type="number" name="stock_qty" min="0" required>
-                </div>
-
-                <div class="form-item">
-                    <label>公開ステータス：</label><br>
-                    <select name="public_flg" required>
-                        <option value="1">公開</option>
-                        <option value="0">非公開</option>
-                    </select>
-                </div>
-
-                <div class="form-item">
-                    <label>商品画像：</label><br>
-                    <input type="file" name="image" accept="image/jpeg, image/png" required>
-                </div>
-
-                <input type="submit" value="商品を追加">
-            </form>
-        </div>
 
         <!-- 商品一覧テーブル -->
         <table>
             <tr>
-                <th>商品ID</th>
-                <th>画像</th>
+                <th>ID</th>
+                <th>商品画像</th>
                 <th>商品名</th>
                 <th>価格</th>
                 <th>在庫数</th>
-                <th>公開ステータス</th>
+                <th>公開状態</th>
                 <th>操作</th>
             </tr>
 
             <?php foreach ($products as $product): ?>
                 <tr>
-                    <td><?= htmlspecialchars($product['product_id'], ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= (int)$product['product_id']; ?></td>
                     <td>
-                        <?php if (!empty($product['image_name'])): ?>
-                            <img src="<?= IMAGE_PATH . htmlspecialchars($product['image_name'], ENT_QUOTES, 'UTF-8') ?>" alt="商品画像">
-                        <?php else: ?>
-                            画像なし
-                        <?php endif; ?>
+                        <img src="<?= htmlspecialchars(IMAGE_PATH . ($product['image_name'] ?: NO_IMAGE), ENT_QUOTES, 'UTF-8'); ?>" alt="">
                     </td>
-                    <td><?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td>¥<?= htmlspecialchars(number_format($product['price']), ENT_QUOTES, 'UTF-8') ?></td>
+                    <td><?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?></td>
+                    <td><?= number_format($product['price']); ?>円</td>
 
+                    <!-- 在庫変更 -->
                     <td>
-                        <form method="post" style="display:inline;">
-                            <input type="hidden" name="process_kind" value="update_stock">
-                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['product_id'], ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="number" name="stock_qty" min="0" value="<?= htmlspecialchars($product['stock_qty'], ENT_QUOTES, 'UTF-8') ?>" required>
-                            <input type="submit" value="更新">
-                        </form>
-                    </td>
-
-                    <td>
-                        <form method="post" style="display:inline;">
-                            <input type="hidden" name="process_kind" value="update_status">
-                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['product_id'], ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="hidden" name="public_flg" value="<?= htmlspecialchars($product['public_flg'], ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="submit" value="<?= $product['public_flg'] == 1 ? '公開 → 非公開' : '非公開 → 公開' ?>">
-                        </form>
-                    </td>
-
-                    <td class="actions">
                         <form method="post">
-                            <input type="hidden" name="process_kind" value="delete">
-                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['product_id'], ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="submit" value="削除" onclick="return confirm('本当に削除しますか？');">
+                            <input type="hidden" name="action" value="update_stock">
+                            <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
+                            <input type="number" name="stock_qty" value="<?= (int)$product['stock_qty']; ?>" min="0">
+                            <button type="submit">変更</button>
+                        </form>
+                    </td>
+
+                    <!-- 公開フラグ切替 -->
+                    <td>
+                        <form method="post">
+                            <input type="hidden" name="action" value="toggle_public">
+                            <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
+                            <input type="hidden" name="public_flg" value="<?= (int)$product['public_flg']; ?>">
+                            <button type="submit">
+                                <?= $product['public_flg'] == 1 ? '公開中' : '非公開'; ?>
+                            </button>
+                        </form>
+                    </td>
+
+                    <!-- 操作 -->
+                    <td>
+                        <!-- 画像変更 -->
+                        <form method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="change_image">
+                            <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
+                            <input type="file" name="new_image">
+                            <button type="submit" class="image-change-btn">画像変更</button>
+                        </form>
+
+                        <!-- 画像削除 -->
+                        <form method="post">
+                            <input type="hidden" name="action" value="delete_image">
+                            <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
+                            <button type="submit" class="image-delete-btn">画像削除</button>
+                        </form>
+
+                        <!-- 商品削除 -->
+                        <form method="post">
+                            <input type="hidden" name="action" value="delete_product">
+                            <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
+                            <button type="submit" class="delete-btn">削除</button>
                         </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
         </table>
 
+        <!-- 新規商品追加フォーム -->
+        <div class="add-form">
+            <h2>新規商品追加</h2>
+            <form method="post" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="insert_product">
+                商品名：<input type="text" name="product_name" required>
+                価格：<input type="number" name="price" min="0" required>
+                在庫：<input type="number" name="stock_qty" min="0" required>
+                公開：
+                <select name="public_flg">
+                    <option value="1">公開</option>
+                    <option value="0">非公開</option>
+                </select>
+                画像：<input type="file" name="image">
+                <button type="submit">追加</button>
+            </form>
+        </div>
     </body>
 
     </html>
