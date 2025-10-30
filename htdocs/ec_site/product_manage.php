@@ -18,8 +18,8 @@ check_login();
 $dbh = db_connect();
 $message = '';
 $message_type = '';
-// ログイン中ユーザー名
 $user_name = $_SESSION['user_name'] ?? '';
+
 // ==============================
 // POST処理
 // ==============================
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stock_qty = $_POST['stock_qty'] ?? '';
             $public_flg = $_POST['public_flg'] ?? '0';
             $image = $_FILES['image'] ?? null;
-            // 入力チェック
+
             if ($product_name === '' || $price === '' || $stock_qty === '') {
                 $message = 'すべての項目を入力してください。';
                 $message_type = 'error';
@@ -52,25 +52,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
                 break;
             }
-            // 画像処理（アップロードがない場合はno_image.png）
-            $image_name = 'no_image.png';
-            if (!empty($image['name']) && $image['error'] === UPLOAD_ERR_OK) {
-                $mime_type = mime_content_type($image['tmp_name']);
-                if (!in_array($mime_type, ALLOWED_IMAGE_TYPES, true)) {
-                    $message = '画像形式はJPEGまたはPNGのみです。';
-                    $message_type = 'error';
-                    break;
-                }
-                $image_name = uniqid('img_') . '.' . pathinfo($image['name'], PATHINFO_EXTENSION);
-                $upload_path = IMAGE_DIR . $image_name;
 
-                if (!move_uploaded_file($image['tmp_name'], $upload_path)) {
-                    $message = '画像のアップロードに失敗しました。';
+            // 画像処理（アップロードがある場合はモデル経由で保存）
+            $image_name = NO_IMAGE;
+            if (!empty($image['name'])) {
+                try {
+                    // product_id=0は仮で、DBにはまだ登録されていないので直接ファイル保存のみ
+                    $image_name = save_uploaded_image($image); // 新しく作る補助関数
+                } catch (Exception $e) {
+                    $message = $e->getMessage();
                     $message_type = 'error';
                     break;
                 }
             }
-            // ✅ モデル関数名を修正
+
             if (register_product_transaction($dbh, $product_name, $price, $public_flg, $stock_qty, $image_name)) {
                 $message = '商品を追加しました。';
                 $message_type = 'success';
@@ -79,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             }
             break;
+
         // --------------------------------
         // 在庫数更新
         // --------------------------------
@@ -91,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
                 break;
             }
-            // ✅ 関数名を修正
+
             if (update_stock_transaction($dbh, $product_id, $stock_qty)) {
                 $message = '在庫数を更新しました。';
                 $message_type = 'success';
@@ -100,6 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             }
             break;
+
         // --------------------------------
         // 公開ステータス切替
         // --------------------------------
@@ -116,6 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             }
             break;
+
         // --------------------------------
         // 画像変更
         // --------------------------------
@@ -129,35 +127,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
 
-            $mime_type = mime_content_type($new_image['tmp_name']);
-            if (!in_array($mime_type, ALLOWED_IMAGE_TYPES, true)) {
-                $message = 'JPEGまたはPNG形式のみ対応しています。';
-                $message_type = 'error';
-                break;
-            }
-
-            $new_name = uniqid('img_') . '.' . pathinfo($new_image['name'], PATHINFO_EXTENSION);
-            $upload_path = IMAGE_DIR . $new_name;
-
-            if (move_uploaded_file($new_image['tmp_name'], $upload_path)) {
-                if (update_product_image($dbh, $product_id, $new_name)) {
-                    $message = '画像を変更しました。';
-                    $message_type = 'success';
-                } else {
-                    $message = '画像変更に失敗しました。';
-                    $message_type = 'error';
-                }
-            } else {
-                $message = '画像ファイルの保存に失敗しました。';
+            try {
+                $new_file_name = update_product_image($dbh, $product_id, $new_image);
+                $message = '画像を変更しました。';
+                $message_type = 'success';
+            } catch (Exception $e) {
+                $message = $e->getMessage();
                 $message_type = 'error';
             }
             break;
+
         // --------------------------------
-        // 画像削除（no_image.pngに置き換え）
+        // 画像削除
         // --------------------------------
         case 'delete_image':
             $product_id = $_POST['product_id'] ?? '';
-            if (update_product_image($dbh, $product_id, 'no_image.png')) {
+            if (delete_product_image($dbh, $product_id)) {
                 $message = '画像を削除しました（no_image.pngに変更）。';
                 $message_type = 'success';
             } else {
@@ -165,13 +150,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             }
             break;
-        // -------------------------------
+
+        // --------------------------------
         // 商品削除
         // --------------------------------
         case 'delete_product':
             $product_id = $_POST['product_id'] ?? '';
 
-            // ✅ 関数名を修正
             if (delete_product_transaction($dbh, $product_id)) {
                 $message = '商品を削除しました。';
                 $message_type = 'success';
@@ -182,11 +167,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
     }
 }
+
 // ==============================
 // 商品一覧取得
 // ==============================
 $products = get_product_list($dbh);
-// =============================
+
+// ==============================
 // ビュー呼び出し
 // ==============================
 display_product_manage($products, $message, $message_type, $user_name);
+
+
+/**
+ * 商品追加時の画像アップロード専用関数
+ */
+function save_uploaded_image(array $file): string
+{
+    // MIMEタイプチェック
+    if (!in_array($file['type'], ALLOWED_IMAGE_TYPES, true)) {
+        throw new Exception('JPEGまたはPNG形式の画像を選択してください。');
+    }
+
+    // ファイルサイズチェック
+    if ($file['size'] > MAX_FILE_SIZE) {
+        throw new Exception('ファイルサイズは1MB以下にしてください。');
+    }
+
+    // 保存ファイル名
+    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $new_filename = uniqid('img_') . '.' . $extension;
+    $save_path = IMAGE_DIR . $new_filename;
+
+    if (!is_dir(IMAGE_DIR)) {
+        mkdir(IMAGE_DIR, 0755, true);
+    }
+
+    if (!move_uploaded_file($file['tmp_name'], $save_path)) {
+        throw new Exception('画像ファイルの保存に失敗しました。');
+    }
+
+    return $new_filename;
+}
