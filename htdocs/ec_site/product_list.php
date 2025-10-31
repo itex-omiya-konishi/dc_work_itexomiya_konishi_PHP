@@ -7,13 +7,26 @@
  * - 「カートに入れる」処理付き
  */
 
-session_start();
 
-require_once __DIR__ . '/../../include/config/const.php';
-require_once __DIR__ . '/../../include/functions/common.php';
-require_once __DIR__ . '/../../include/model/product_model.php';
-require_once __DIR__ . '/../../include/model/cart_model.php';
-require_once __DIR__ . '/../../include/view/product_list_view.php';
+/**
+ * 商品一覧ページ
+ * - 公開フラグが1の商品だけ表示
+ * - 在庫0の場合は「売り切れ」表示
+ * - 画像が無ければ no_image.png 表示
+ */
+
+require_once '../../include/config/const.php';
+require_once '../../include/functions/common.php';
+require_once '../../include/model/product_model.php';
+require_once '../../include/view/product_list_view.php';
+
+ensure_session_started();
+
+// DB接続
+$dbh = db_connect();
+
+// 公開商品取得
+$products = get_public_products($dbh);
 
 // ===============================
 // ログインチェック
@@ -25,11 +38,6 @@ if (empty($_SESSION['user_id']) || empty($_SESSION['user_name'])) {
 
 // ログインユーザー情報
 $user_name = h($_SESSION['user_name']);
-
-// ===============================
-// DB接続
-// ===============================
-$dbh = db_connect();
 
 // ===============================
 // 商品一覧取得

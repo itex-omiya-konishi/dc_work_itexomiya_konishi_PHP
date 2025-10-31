@@ -9,8 +9,8 @@
 
 require_once '../../include/config/const.php';
 require_once '../../include/functions/common.php';
-require_once '../../include/model/product_manage_model.php';
 require_once '../../include/view/product_manage_view.php';
+require_once '../../include/model/product_model.php';
 
 ensure_session_started();
 check_login();
@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // --------------------------------
         // 商品追加
         // --------------------------------
+        // --- (product_manage.php の insert_product ケース) ---
         case 'insert_product':
             $product_name = trim($_POST['product_name'] ?? '');
             $price = $_POST['price'] ?? '';
@@ -53,12 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
 
-            // 画像処理（アップロードがある場合はモデル経由で保存）
+            // 画像処理（アップロードがある場合のみ・エラー確認）
             $image_name = NO_IMAGE;
             if (!empty($image['name'])) {
+                if (!isset($image['error']) || $image['error'] !== UPLOAD_ERR_OK) {
+                    $message = '画像アップロードに問題があります（エラーコード:' . ($image['error'] ?? 'N/A') . '）。';
+                    $message_type = 'error';
+                    break;
+                }
                 try {
-                    // product_id=0は仮で、DBにはまだ登録されていないので直接ファイル保存のみ
-                    $image_name = save_uploaded_image($image); // 新しく作る補助関数
+                    $image_name = save_uploaded_image($image); // 下で改良した関数を使う
                 } catch (Exception $e) {
                     $message = $e->getMessage();
                     $message_type = 'error';
@@ -67,8 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (register_product_transaction($dbh, $product_name, $price, $public_flg, $stock_qty, $image_name)) {
-                $message = '商品を追加しました。';
-                $message_type = 'success';
+                // 成功したらリダイレクト（PRG）して一覧を最新化・二重送信防止
+                header('Location: ' . basename(__FILE__));
+                exit;
             } else {
                 $message = '商品追加に失敗しました。';
                 $message_type = 'error';
@@ -117,6 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // --------------------------------
         // 画像変更
         // --------------------------------
+        // --- (product_manage.php の change_image ケース) ---
         case 'change_image':
             $product_id = $_POST['product_id'] ?? '';
             $new_image = $_FILES['new_image'] ?? null;
@@ -127,15 +134,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
 
+            if (!isset($new_image['error']) || $new_image['error'] !== UPLOAD_ERR_OK) {
+                $message = '画像アップロードに問題があります（エラーコード:' . ($new_image['error'] ?? 'N/A') . '）。';
+                $message_type = 'error';
+                break;
+            }
+
             try {
-                $new_file_name = update_product_image($dbh, $product_id, $new_image);
-                $message = '画像を変更しました。';
-                $message_type = 'success';
+                update_product_image($dbh, $product_id, $new_image); // model内で保存＋DB更新
+                header('Location: ' . basename(__FILE__)); // PRGで反映
+                exit;
             } catch (Exception $e) {
                 $message = $e->getMessage();
                 $message_type = 'error';
             }
             break;
+
 
         // --------------------------------
         // 画像削除
@@ -184,8 +198,13 @@ display_product_manage($products, $message, $message_type, $user_name);
  */
 function save_uploaded_image(array $file): string
 {
+    if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('アップロードエラーが発生しました。');
+    }
+
     // MIMEタイプチェック
-    if (!in_array($file['type'], ALLOWED_IMAGE_TYPES, true)) {
+    $finfo_type = mime_content_type($file['tmp_name']) ?: ($file['type'] ?? '');
+    if (!in_array($finfo_type, ALLOWED_IMAGE_TYPES, true)) {
         throw new Exception('JPEGまたはPNG形式の画像を選択してください。');
     }
 
@@ -194,8 +213,13 @@ function save_uploaded_image(array $file): string
         throw new Exception('ファイルサイズは1MB以下にしてください。');
     }
 
-    // 保存ファイル名
-    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    // 保存ファイル名（拡張子は安全に取得）
+    $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($extension, ['jpg', 'jpeg', 'png'], true)) {
+        // 予防措置：拡張子が予期外ならMIMEに合わせる
+        $extension = $finfo_type === 'image/png' ? 'png' : 'jpg';
+    }
+
     $new_filename = uniqid('img_') . '.' . $extension;
     $save_path = IMAGE_DIR . $new_filename;
 

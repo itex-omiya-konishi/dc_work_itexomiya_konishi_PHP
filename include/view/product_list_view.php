@@ -1,7 +1,15 @@
 <?php
 require_once __DIR__ . '/../config/const.php';
 
-function display_product_list($products, $message = '', $message_type = '', $user_name = '')
+/**
+ * 商品一覧ビュー
+ *
+ * @param array $products 商品データ配列
+ * @param string $message メッセージ
+ * @param string $message_type メッセージタイプ（success / error）
+ * @param string $user_name ログインユーザー名
+ */
+function display_product_list(array $products, string $message = '', string $message_type = '', string $user_name = ''): void
 {
 ?>
     <!DOCTYPE html>
@@ -82,15 +90,19 @@ function display_product_list($products, $message = '', $message_type = '', $use
     <body>
         <header>
             <div class="logout">
-                <?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8'); ?> さん ようこそ |
-                <a href="logout.php">ログアウト</a>
+                <?php if ($user_name !== ''): ?>
+                    <?= htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8'); ?> さん ようこそ |
+                    <a href="logout.php">ログアウト</a>
+                <?php endif; ?>
             </div>
             <h1>商品一覧</h1>
             <nav><a href="cart.php">🛒 カートを見る</a></nav>
         </header>
 
         <?php if ($message !== ''): ?>
-            <p class="<?= $message_type ?>"><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?></p>
+            <p class="<?= htmlspecialchars($message_type, ENT_QUOTES, 'UTF-8'); ?>">
+                <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?>
+            </p>
         <?php endif; ?>
 
         <div class="product-list">
@@ -98,14 +110,16 @@ function display_product_list($products, $message = '', $message_type = '', $use
                 <?php
                 $image_name = $product['image_name'] ?? NO_IMAGE;
                 $image_path = IMAGE_PATH . $image_name;
+                $stock_qty = (int)($product['stock_qty'] ?? 0);
                 ?>
                 <div class="product-item">
                     <img src="<?= htmlspecialchars($image_path, ENT_QUOTES, 'UTF-8'); ?>"
                         alt="<?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?>">
                     <h2><?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?></h2>
                     <p>価格: <?= number_format($product['price']); ?>円</p>
-                    <?php if ((int)$product['stock_qty'] > 0): ?>
-                        <form method="post">
+
+                    <?php if ($stock_qty > 0): ?>
+                        <form method="post" action="cart.php">
                             <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
                             <button type="submit">カートに入れる</button>
                         </form>
