@@ -84,6 +84,17 @@ function display_product_list(array $products, string $message = '', string $mes
             button:hover {
                 opacity: 0.8;
             }
+
+            .product-item img {
+                width: 180px;
+                /* 横幅を固定 */
+                height: 180px;
+                /* 高さも固定 */
+                object-fit: contain;
+                /* 画像の縦横比を保ちつつ中央でトリミング */
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
         </style>
     </head>
 
@@ -119,8 +130,11 @@ function display_product_list(array $products, string $message = '', string $mes
                     <p>価格: <?= number_format($product['price']); ?>円</p>
 
                     <?php if ($stock_qty > 0): ?>
+
                         <form method="post" action="cart.php">
                             <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
+                            <input type="hidden" name="action" value="add_to_cart">
+                            数量: <input type="number" name="product_qty" value="1" min="1">
                             <button type="submit">カートに入れる</button>
                         </form>
                     <?php else: ?>
