@@ -131,10 +131,9 @@ function display_product_list(array $products, string $message = '', string $mes
 
                     <?php if ($stock_qty > 0): ?>
 
-                        <form method="post" action="cart.php">
+                        <form method="post" action="product_list.php">
                             <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
-                            <input type="hidden" name="action" value="add_to_cart">
-                            数量: <input type="number" name="product_qty" value="1" min="1">
+                            <input type="number" name="product_qty" value="1" min="1">
                             <button type="submit">カートに入れる</button>
                         </form>
                     <?php else: ?>
