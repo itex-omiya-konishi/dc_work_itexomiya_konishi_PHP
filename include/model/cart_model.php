@@ -51,6 +51,7 @@ function add_to_cart($dbh, $user_id, $product_id, $quantity = 1)
         return true;
     } catch (PDOException $e) {
         error_log('add_to_cart PDOException: ' . $e->getMessage());
+        echo '<pre style="color:red;">PDOException: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</pre>';
         return false;
     }
 }

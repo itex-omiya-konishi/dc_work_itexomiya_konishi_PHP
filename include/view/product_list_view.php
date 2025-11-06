@@ -73,6 +73,7 @@ function display_product_list(array $products, string $message = '', string $mes
             }
 
             button {
+                margin-top: 5px;
                 padding: 5px 10px;
                 border: none;
                 background: #4CAF50;

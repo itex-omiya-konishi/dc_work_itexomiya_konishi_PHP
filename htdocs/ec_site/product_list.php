@@ -4,6 +4,7 @@ require_once '../../include/functions/common.php';
 require_once '../../include/model/product_model.php';
 require_once '../../include/model/cart_model.php';
 require_once '../../include/view/product_list_view.php';
+require_once '../../include/view/cart_view.php';
 
 ensure_session_started();
 
@@ -15,7 +16,10 @@ if (empty($_SESSION['user_id']) || empty($_SESSION['user_name'])) {
 
 $dbh = db_connect();
 $user_id = $_SESSION['user_id'];
+echo '<pre style="color:blue;">現在のuser_id: ' . htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8') . '</pre>';
+//echo '<pre style="color:red;">DEBUG: user_id = ' . htmlspecialchars($_SESSION['user_id'] ?? '未設定', ENT_QUOTES, 'UTF-8') . '</pre>';
 $user_name = h($_SESSION['user_name']);
+
 
 $products = get_public_products($dbh);
 $message = '';
