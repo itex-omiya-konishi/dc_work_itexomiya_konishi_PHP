@@ -2,8 +2,9 @@
 
 /**
  * 購入完了ページ
- * - カート内容をDBから取得し、在庫を減算
- * - カートを空にする
+ * - カート内容をDBから取得
+ * - 注文テーブル・注文明細テーブルに登録
+ * - 在庫を減算し、カートを空にする
  * - 購入完了メッセージを表示
  */
 
@@ -29,13 +30,12 @@ $message_type = '';
 $cart_items = get_cart_list($dbh, $user_id);
 
 if (empty($cart_items)) {
-    // カートが空なら商品一覧へ
     header('Location: product_list.php');
     exit;
 }
 
 // -----------------------------
-// 購入処理（在庫更新・カート削除）
+// 購入処理（orders・order_details登録、在庫更新、カート削除）
 // -----------------------------
 $result = complete_purchase($dbh, $user_id, $cart_items);
 
