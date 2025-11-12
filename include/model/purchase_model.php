@@ -45,13 +45,14 @@ function complete_purchase($dbh, $user_id, $cart_items)
         foreach ($cart_items as $item) {
             $subtotal = $item['price'] * $item['product_qty'];
 
+            // 🔸 修正：$item['product_name'] に変更
             $stmt_detail->execute([
                 $order_id,
                 $item['product_id'],
-                $item['name'],        // 商品名
-                $item['price'],       // 単価
-                $item['product_qty'], // 数量
-                $subtotal             // 小計
+                $item['product_name'],  // ← 正しいキー名
+                $item['price'],
+                $item['product_qty'],
+                $subtotal
             ]);
 
             // ----------------------------------------
@@ -80,6 +81,7 @@ function complete_purchase($dbh, $user_id, $cart_items)
     } catch (Exception $e) {
         $dbh->rollBack();
         error_log('complete_purchase error: ' . $e->getMessage());
+        echo '<p style="color:red;">購入処理エラー:<br>' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p>';
         return ['success' => false, 'message' => $e->getMessage()];
     }
 }
