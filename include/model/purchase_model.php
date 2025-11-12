@@ -7,20 +7,12 @@
 
 require_once __DIR__ . '/../functions/common.php';
 
-/**
- * 購入処理本体
- * - orders / order_details 登録
- * - 在庫数の更新
- * - カート情報削除
- */
 function complete_purchase($dbh, $user_id, $cart_items)
 {
     try {
         $dbh->beginTransaction();
 
-        // ----------------------------------------
         // 1. 注文情報を orders テーブルに登録
-        // ----------------------------------------
         $total = 0;
         foreach ($cart_items as $item) {
             $total += $item['price'] * $item['product_qty'];
@@ -31,33 +23,30 @@ function complete_purchase($dbh, $user_id, $cart_items)
             VALUES (?, ?, NOW())
         ');
         $stmt->execute([$user_id, $total]);
-        $order_id = $dbh->lastInsertId(); // 注文IDを取得
+        $order_id = $dbh->lastInsertId();
 
-        // ----------------------------------------
         // 2. 注文明細を order_details に登録
-        // ----------------------------------------
         $stmt_detail = $dbh->prepare('
             INSERT INTO order_details 
-                (order_id, product_id, product_name, price, quantity, subtotal, create_date)
-            VALUES (?, ?, ?, ?, ?, ?, NOW())
+                (order_id, product_id, product_name, image_name, price, quantity, subtotal, create_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
         ');
 
         foreach ($cart_items as $item) {
             $subtotal = $item['price'] * $item['product_qty'];
+            $image_name = $item['image_name'] ?? 'no_image.png';
 
-            // 🔸 修正：$item['product_name'] に変更
             $stmt_detail->execute([
                 $order_id,
                 $item['product_id'],
-                $item['product_name'],  // ← 正しいキー名
+                $item['product_name'],  // ← product_name に修正済み
+                $image_name,
                 $item['price'],
                 $item['product_qty'],
                 $subtotal
             ]);
 
-            // ----------------------------------------
             // 3. 在庫を減算
-            // ----------------------------------------
             $stmt_stock = $dbh->prepare('
                 UPDATE stocks 
                 SET stock_qty = stock_qty - ? 
@@ -70,9 +59,7 @@ function complete_purchase($dbh, $user_id, $cart_items)
             }
         }
 
-        // ----------------------------------------
-        // 4. カート情報を削除
-        // ----------------------------------------
+        // 4. カート削除
         $stmt = $dbh->prepare('DELETE FROM carts WHERE user_id = ?');
         $stmt->execute([$user_id]);
 
@@ -81,7 +68,6 @@ function complete_purchase($dbh, $user_id, $cart_items)
     } catch (Exception $e) {
         $dbh->rollBack();
         error_log('complete_purchase error: ' . $e->getMessage());
-        echo '<p style="color:red;">購入処理エラー:<br>' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</p>';
         return ['success' => false, 'message' => $e->getMessage()];
     }
 }

@@ -33,6 +33,20 @@ function display_product_list(array $products, string $message = '', string $mes
                 margin-bottom: 20px;
             }
 
+            nav a {
+                margin-left: 10px;
+                text-decoration: none;
+                background: #4CAF50;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 5px;
+                font-size: 14px;
+            }
+
+            nav a:hover {
+                opacity: 0.8;
+            }
+
             .logout {
                 margin-bottom: 10px;
             }
@@ -88,11 +102,8 @@ function display_product_list(array $products, string $message = '', string $mes
 
             .product-item img {
                 width: 180px;
-                /* 横幅を固定 */
                 height: 180px;
-                /* 高さも固定 */
                 object-fit: contain;
-                /* 画像の縦横比を保ちつつ中央でトリミング */
                 border-radius: 5px;
                 margin-bottom: 10px;
             }
@@ -107,8 +118,13 @@ function display_product_list(array $products, string $message = '', string $mes
                     <a href="logout.php">ログアウト</a>
                 <?php endif; ?>
             </div>
+
             <h1>商品一覧</h1>
-            <nav><a href="cart.php">🛒 カートを見る</a></nav>
+
+            <nav>
+                <a href="cart.php">🛒 カートを見る</a>
+                <a href="order.php">📜 購入履歴</a>
+            </nav>
         </header>
 
         <?php if ($message !== ''): ?>
@@ -131,7 +147,6 @@ function display_product_list(array $products, string $message = '', string $mes
                     <p>価格: <?= number_format($product['price']); ?>円</p>
 
                     <?php if ($stock_qty > 0): ?>
-
                         <form method="post" action="product_list.php">
                             <input type="hidden" name="product_id" value="<?= (int)$product['product_id']; ?>">
                             <input type="number" name="product_qty" value="1" min="1">
