@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 break;
             }
 
+
             // 画像処理（アップロードがある場合のみ・エラー確認）
             $image_name = NO_IMAGE;
             if (!empty($image['name'])) {
@@ -70,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
                 }
             }
-
             if (register_product_transaction($dbh, $product_name, $price, $public_flg, $stock_qty, $image_name)) {
                 // 成功したらリダイレクト（PRG）して一覧を最新化・二重送信防止
                 header('Location: ' . basename(__FILE__));

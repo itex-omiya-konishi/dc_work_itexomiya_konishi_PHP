@@ -56,25 +56,36 @@ function get_product_list($dbh)
 /**
  * 新規商品登録（トランザクション）
  */
-function register_product_transaction($dbh, $name, $price, $public_flg, $stock_qty, $image_name = NO_IMAGE)
+/**
+ * 商品登録（商品＋在庫＋画像）をトランザクションで実行
+ *
+ * @param PDO $dbh
+ * @param string $name 商品名
+ * @param int $price 価格
+ * @param int $public_flg 公開フラグ
+ * @param int $stock_qty 在庫数
+ * @param string $image_name 画像ファイル名（未指定なら NO_IMAGE）
+ * @return bool 成功:true / 失敗:false
+ */
+function register_product_transaction(PDO $dbh, string $name, int $price, int $public_flg, int $stock_qty, string $image_name = NO_IMAGE): bool
 {
     try {
         $dbh->beginTransaction();
 
-        // 商品登録
-        $sql1 = 'INSERT INTO products (product_name, price, public_flg, create_date, update_date)
-                 VALUES (?, ?, ?, NOW(), NOW())';
+        // products に登録（image_name も更新）
+        $sql1 = 'INSERT INTO products (product_name, price, public_flg, image_name, create_date, update_date)
+                 VALUES (?, ?, ?, ?, NOW(), NOW())';
         $stmt1 = $dbh->prepare($sql1);
-        $stmt1->execute([$name, $price, $public_flg]);
+        $stmt1->execute([$name, $price, $public_flg, $image_name]);
         $product_id = $dbh->lastInsertId();
 
-        // 在庫登録
+        // stocks に登録
         $sql2 = 'INSERT INTO stocks (product_id, stock_qty, create_date, update_date)
                  VALUES (?, ?, NOW(), NOW())';
         $stmt2 = $dbh->prepare($sql2);
         $stmt2->execute([$product_id, $stock_qty]);
 
-        // 画像登録
+        // images に登録
         $sql3 = 'INSERT INTO images (product_id, image_name, create_date, update_date)
                  VALUES (?, ?, NOW(), NOW())';
         $stmt3 = $dbh->prepare($sql3);
@@ -88,6 +99,7 @@ function register_product_transaction($dbh, $name, $price, $public_flg, $stock_q
         return false;
     }
 }
+
 
 /**
  * 在庫更新
@@ -117,7 +129,10 @@ function update_public_flg($dbh, $product_id, $new_status)
 /**
  * 画像変更（アップロード＋古い画像削除）
  */
-function update_product_image($dbh, $product_id, $file)
+/**
+ * 画像変更（古い画像は削除して新しい画像に差し替え）
+ */
+function update_product_image(PDO $dbh, int $product_id, array $file)
 {
     if (empty($file['name'])) {
         throw new Exception('画像ファイルが選択されていません。');
@@ -136,7 +151,6 @@ function update_product_image($dbh, $product_id, $file)
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $new_filename = uniqid('img_') . '.' . $ext;
     $save_path = IMAGE_DIR . $new_filename;
-
     if (!move_uploaded_file($file['tmp_name'], $save_path)) {
         throw new Exception('画像の保存に失敗しました。');
     }
@@ -147,11 +161,32 @@ function update_product_image($dbh, $product_id, $file)
         unlink(IMAGE_DIR . $old_image);
     }
 
-    // DB更新
-    $sql = 'UPDATE images SET image_name = ?, update_date = NOW() WHERE product_id = ?';
-    $stmt = $dbh->prepare($sql);
-    $stmt->execute([$new_filename, $product_id]);
+    // DB更新（products.image_name と images テーブルに新しい画像を登録）
+    $dbh->beginTransaction();
+    try {
+        // products.image_name 更新
+        $sql1 = 'UPDATE products SET image_name = ?, update_date = NOW() WHERE product_id = ?';
+        $stmt1 = $dbh->prepare($sql1);
+        $stmt1->execute([$new_filename, $product_id]);
+
+        // images テーブルも更新（過去画像は残さず最新画像のみ）
+        $sql2 = 'DELETE FROM images WHERE product_id = ?';
+        $stmt2 = $dbh->prepare($sql2);
+        $stmt2->execute([$product_id]);
+
+        $sql3 = 'INSERT INTO images (product_id, image_name, create_date, update_date)
+                 VALUES (?, ?, NOW(), NOW())';
+        $stmt3 = $dbh->prepare($sql3);
+        $stmt3->execute([$product_id, $new_filename]);
+
+        $dbh->commit();
+    } catch (Exception $e) {
+        $dbh->rollBack();
+        throw $e;
+    }
 }
+
+
 
 /**
  * 画像削除（no_imageに変更）
@@ -163,9 +198,15 @@ function delete_product_image($dbh, $product_id)
         unlink(IMAGE_DIR . $old_image);
     }
 
-    $sql = 'UPDATE images SET image_name = ?, update_date = NOW() WHERE product_id = ?';
-    $stmt = $dbh->prepare($sql);
-    return $stmt->execute([NO_IMAGE, $product_id]);
+    // products.image_name と images テーブルを NO_IMAGE に
+    $sql1 = 'UPDATE products SET image_name = ?, update_date = NOW() WHERE product_id = ?';
+    $stmt1 = $dbh->prepare($sql1);
+    $stmt1->execute([NO_IMAGE, $product_id]);
+
+    $sql2 = 'INSERT INTO images (product_id, image_name, create_date, update_date)
+             VALUES (?, ?, NOW(), NOW())';
+    $stmt2 = $dbh->prepare($sql2);
+    return $stmt2->execute([$product_id, NO_IMAGE]);
 }
 
 /**

@@ -120,10 +120,9 @@ function display_product_list(array $products, string $message = '', string $mes
             </div>
 
             <h1>商品一覧</h1>
-
             <nav>
                 <a href="cart.php">🛒 カートを見る</a>
-                <a href="order.php">📜 購入履歴</a>
+                <a href="history.php">📜 購入履歴</a>
             </nav>
         </header>
 
@@ -132,7 +131,6 @@ function display_product_list(array $products, string $message = '', string $mes
                 <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8'); ?>
             </p>
         <?php endif; ?>
-
         <div class="product-list">
             <?php foreach ($products as $product): ?>
                 <?php
