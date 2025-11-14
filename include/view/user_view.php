@@ -1,13 +1,13 @@
 <?php
 // ======================================
-// user_view.php
-// ユーザー関連ビュー（ログイン・登録）
+// user_view.php（ハイブリッド版）
+// ec_site_view の柔らかい UI ＋ user_view のメッセージ機能統合
 // ======================================
 
 require_once __DIR__ . '/../functions/common.php';
 
 /**
- * ログインフォームを表示
+ * ログインフォーム
  */
 function display_login_form($message = '', $message_type = '')
 {
@@ -20,7 +20,7 @@ function display_login_form($message = '', $message_type = '')
         <title>ログインページ</title>
         <style>
             body {
-                font-family: Arial;
+                font-family: Arial, sans-serif;
                 background-color: #f0f8ff;
                 text-align: center;
                 margin: 0;
@@ -93,10 +93,11 @@ function display_login_form($message = '', $message_type = '')
 
     <body>
         <div class="container">
+
             <h1>ログイン</h1>
 
             <?php if ($message !== ''): ?>
-                <div class="message <?php echo htmlspecialchars($message_type); ?>">
+                <div class="message <?php echo h($message_type); ?>">
                     <?php echo h($message); ?>
                 </div>
             <?php endif; ?>
@@ -114,8 +115,9 @@ function display_login_form($message = '', $message_type = '')
     </html>
 <?php
 }
+
 /**
- * ユーザー登録フォームを表示
+ * 新規登録フォーム
  */
 function display_register_form($message = '', $message_type = '')
 {
@@ -128,7 +130,7 @@ function display_register_form($message = '', $message_type = '')
         <title>ユーザー登録ページ</title>
         <style>
             body {
-                font-family: Arial;
+                font-family: Arial, sans-serif;
                 background-color: #fff0f5;
                 text-align: center;
                 margin: 0;
@@ -201,10 +203,11 @@ function display_register_form($message = '', $message_type = '')
 
     <body>
         <div class="container">
+
             <h1>新規ユーザー登録</h1>
 
             <?php if ($message !== ''): ?>
-                <div class="message <?php echo htmlspecialchars($message_type); ?>">
+                <div class="message <?php echo h($message_type); ?>">
                     <?php echo h($message); ?>
                 </div>
             <?php endif; ?>
@@ -223,3 +226,4 @@ function display_register_form($message = '', $message_type = '')
     </html>
 <?php
 }
+?>
