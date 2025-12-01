@@ -17,8 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
     // バリデーション
-    if ($user_id === '' || $password === '') {
-        $message = 'ユーザーIDとパスワードを入力してください。';
+    if ($user_id === '' || $username === '' || $password === '') {
+        $message = 'ユーザーID ・ ユーザー名 ・ パスワードを入力してください。';
+        $message_type = 'error';
+    } elseif (mb_strlen($username) < 1 || mb_strlen($username) > 20) {
+        $message = 'ユーザー名は1〜20文字で入力してください。';
         $message_type = 'error';
     } elseif (!preg_match('/^[a-zA-Z0-9_]{5,}$/', $user_id)) {
         $message = 'ユーザーIDは5文字以上で半角英数字とアンダースコアのみ使用可能です。';

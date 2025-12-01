@@ -73,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             break;
 
-
         // ==============================
         // 在庫更新
         // ==============================
@@ -86,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
                 break;
             }
-
             if (update_stock_transaction($dbh, $product_id, $stock_qty)) {
                 $message = '在庫数を更新しました。';
                 $message_type = 'success';
@@ -95,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             }
             break;
-
 
         // ==============================
         // 公開ステータス切替
@@ -127,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
                 break;
             }
-
             try {
                 update_product_image($dbh, $product_id, $file);
                 header('Location: ' . basename(__FILE__));
@@ -137,7 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             }
             break;
-
 
         // ==============================
         // 画像削除
@@ -153,7 +148,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'error';
             }
             break;
-
 
         // ==============================
         // 商品削除
@@ -178,8 +172,6 @@ $products = get_product_list($dbh);
 // ビュー呼び出し
 display_product_manage($products, $message, $message_type, $user_name);
 
-
-
 // ==============================
 // 画像保存専用関数
 // ==============================
@@ -188,16 +180,13 @@ function save_uploaded_image(array $file): string
     if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
         throw new Exception('アップロードエラーが発生しました。');
     }
-
     $finfo_type = mime_content_type($file['tmp_name']) ?: ($file['type'] ?? '');
     if (!in_array($finfo_type, ALLOWED_IMAGE_TYPES, true)) {
         throw new Exception('JPEGまたはPNG形式の画像を選択してください。');
     }
-
     if ($file['size'] > MAX_FILE_SIZE) {
         throw new Exception('ファイルサイズは1MB以下にしてください。');
     }
-
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($extension, ['jpg', 'jpeg', 'png'], true)) {
         $extension = ($finfo_type === 'image/png') ? 'png' : 'jpg';
@@ -209,10 +198,8 @@ function save_uploaded_image(array $file): string
     if (!is_dir(IMAGE_DIR)) {
         mkdir(IMAGE_DIR, 0755, true);
     }
-
     if (!move_uploaded_file($file['tmp_name'], $save_path)) {
         throw new Exception('画像ファイルの保存に失敗しました。');
     }
-
     return $new_filename;
 }
