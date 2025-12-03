@@ -4,7 +4,6 @@
  * purchase_model.php
  * 購入処理関連
  */
-
 require_once __DIR__ . '/../functions/common.php';
 
 function complete_purchase($dbh, $user_id, $cart_items)
@@ -39,7 +38,7 @@ function complete_purchase($dbh, $user_id, $cart_items)
             $stmt_detail->execute([
                 $order_id,
                 $item['product_id'],
-                $item['product_name'],  // ← product_name に修正済み
+                $item['product_name'],
                 $image_name,
                 $item['price'],
                 $item['product_qty'],

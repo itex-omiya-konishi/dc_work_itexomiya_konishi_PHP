@@ -1,8 +1,4 @@
 <?php
-// ======================================
-// user_view.php（ハイブリッド版）
-// ec_site_view の柔らかい UI ＋ user_view のメッセージ機能統合
-// ======================================
 
 require_once __DIR__ . '/../functions/common.php';
 

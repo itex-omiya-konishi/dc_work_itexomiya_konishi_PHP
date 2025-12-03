@@ -7,7 +7,6 @@
  * - 在庫を減算し、カートを空にする
  * - 購入完了メッセージを表示
  */
-
 require_once '../../include/config/const.php';
 require_once '../../include/functions/common.php';
 require_once '../../include/model/cart_model.php';

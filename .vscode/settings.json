@@ -1,3 +1,7 @@
 {
-    "search.useGlobalIgnoreFiles": false
+    "search.useGlobalIgnoreFiles": false,
+    "php.highlight-todo.style": {
+        
+        "backgroundColor": "#eecc00"
+    }
 }

@@ -3,7 +3,6 @@
 /**
  * 商品管理ページ（管理者用）
  */
-
 require_once '../../include/config/const.php';
 require_once '../../include/functions/common.php';
 require_once '../../include/view/product_manage_view.php';

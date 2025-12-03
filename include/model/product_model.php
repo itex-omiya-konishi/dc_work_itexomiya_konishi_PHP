@@ -50,7 +50,6 @@ function get_product_list($dbh)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
 /**
  * 新規商品登録（商品+在庫+画像）
  */
@@ -84,7 +83,6 @@ function register_product_transaction(PDO $dbh, string $name, int $price, int $p
     }
 }
 
-
 /**
  * 在庫更新
  */
@@ -101,7 +99,6 @@ function update_stock_transaction($dbh, $product_id, $stock_qty)
     }
 }
 
-
 /**
  * 公開ステータス切替
  */
@@ -113,7 +110,6 @@ function update_public_flg($dbh, $product_id, $new_status)
     return $stmt->execute([(int)$new_status, (int)$product_id]);
 }
 
-
 /**
  * 商品の画像名取得
  */
@@ -124,7 +120,6 @@ function get_image_name($dbh, $product_id)
     $stmt->execute([$product_id]);
     return $stmt->fetchColumn();
 }
-
 
 /**
  * 画像変更（古い画像削除 → 新しい画像保存 → DB更新）
@@ -181,7 +176,6 @@ function update_product_image(PDO $dbh, int $product_id, array $file)
     }
 }
 
-
 /**
  * 画像削除（no_image.png に差し替え）
  */
@@ -205,7 +199,6 @@ function delete_product_image($dbh, $product_id)
     $stmt2 = $dbh->prepare($sql2);
     return $stmt2->execute([NO_IMAGE, $product_id]);
 }
-
 
 /**
  * 商品削除
